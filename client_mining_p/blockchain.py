@@ -132,25 +132,62 @@ node_identifier = str(uuid4()).replace('-', '')
 # Instantiate the Blockchain
 blockchain = Blockchain()
 
+# Change route to instead recieve a new potential proof sent by a client
+# @app.route('/mine', methods=['GET'])
+# def mine():
+#     # Run the proof of work algorithm to get the next proof
+#     proof = blockchain.proof_of_work()
 
-@app.route('/mine', methods=['GET'])
+#     # Forge the new Block by adding it to the chain with the proof
+#     previous_hash = blockchain.hash(blockchain.last_block)
+#     block = blockchain.new_block(proof, previous_hash)
+
+#     response = {
+#         'message': "New Block Forged",
+#         'index': block['index'],
+#         'transactions': block['transactions'],
+#         'proof': block['proof'],
+#         'previous_hash': block['previous_hash'],
+#     }
+
+#     return jsonify(response), 200
+
+# New /mine route
+@app.route('/mine', methods=['POST'])
 def mine():
-    # Run the proof of work algorithm to get the next proof
-    proof = blockchain.proof_of_work()
+    # Get data from post
+    data = request.get_json()
+    # To check if proof and id are present
+    check = ['proof', 'id']
+    # Initial status for response
+    status = 200
+    # If all items in check are in data
+    if all(i in data for i in check):
+        # Get last block string to use in valid_proof
+        last_block_string = json.dumps(blockchain.last_block, sort_keys=True)
 
-    # Forge the new Block by adding it to the chain with the proof
-    previous_hash = blockchain.hash(blockchain.last_block)
-    block = blockchain.new_block(proof, previous_hash)
-
-    response = {
-        'message': "New Block Forged",
-        'index': block['index'],
-        'transactions': block['transactions'],
-        'proof': block['proof'],
-        'previous_hash': block['previous_hash'],
-    }
-
-    return jsonify(response), 200
+        # Check it is a valid proof, add to block chain
+        if blockchain.valid_proof(last_block_string, data['proof']):
+            previous_hash = blockchain.hash(blockchain.last_block)
+            block = blockchain.new_block(data['proof'], previous_hash)
+            response = {
+                'message': 'New Block Created!',
+                'block': block
+            }
+            satus = 200
+        else:
+            response = {
+                'message': 'Not a valid proof!'
+            }
+            status = 200
+    # If data doesn't include both proof and id    
+    else:
+        response = {
+            'message': 'Proof or ID not present'
+        }
+        status = 400
+    return jsonify(response), status
+    
 
 @app.route('/')
 def welcomer():
