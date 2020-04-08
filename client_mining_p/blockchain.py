@@ -86,10 +86,12 @@ class Blockchain(object):
         # TODO: Return the hashed block string in hexadecimal format
         return hex_hash
 
-    @property
+    # @property
     def last_block(self):
         return self.chain[-1]
 
+    ## Remove proof_of_work from server
+    # TODO add to miner.py
     def proof_of_work(self):
         """
         Simple Proof of Work Algorithm
@@ -118,7 +120,7 @@ class Blockchain(object):
         """
         guess = f"{block_string}{proof}".encode()
         guess_hash = hashlib.sha256(guess).hexdigest()
-        return guess_hash[:4] == "0000"
+        return guess_hash[:6] == "000000"
 
 
 # Instantiate our Node
@@ -159,6 +161,12 @@ def full_chain():
     }
     return jsonify(response), 200
 
+@app.route('/last_block', methods=['GET'])
+def get_last_block():
+    response = {
+        'last_block': blockchain.last_block
+    }
+    return jsonify(response), 200
 
 # Run the program on port 5000
 if __name__ == '__main__':
