@@ -1,6 +1,6 @@
 import hashlib
 import json
-from time import time
+from time import localtime, strftime
 from uuid import uuid4
 
 from flask import Flask, jsonify, request
@@ -39,7 +39,7 @@ class Blockchain(object):
 
         block = {
             'index': len(self.chain) + 1,
-            'timestamp': time(),
+            'timestamp': strftime("%Y-%m-%d %H:%M:%S", localtime()),
             'transactions': self.current_transactions,
             'proof': proof,
             'previous_hash': previous_hash or self.hash(self.chain[-1]),
@@ -86,11 +86,11 @@ class Blockchain(object):
         # TODO: Return the hashed block string in hexadecimal format
         return hex_hash
 
-    # @property
+    @property
     def last_block(self):
         return self.chain[-1]
 
-    ## Remove proof_of_work from server
+    # TODO Remove proof_of_work from server
     # TODO add to miner.py
     def proof_of_work(self):
         """
@@ -109,7 +109,7 @@ class Blockchain(object):
     @staticmethod
     def valid_proof(block_string, proof):
         """
-        Validates the Proof:  Does hash(block_string, proof) contain 3
+        Validates the Proof:  Does hash(block_string, proof) contain 6
         leading zeroes?  Return true if the proof is valid
         :param block_string: <string> The stringified block to use to
         check in combination with `proof`
@@ -152,6 +152,9 @@ def mine():
 
     return jsonify(response), 200
 
+@app.route('/')
+def welcomer():
+    return '<h1>Welcome to the Blockchain landing page</h1>'
 
 @app.route('/chain', methods=['GET'])
 def full_chain():
@@ -161,8 +164,9 @@ def full_chain():
     }
     return jsonify(response), 200
 
+# Route to view last block in chain
 @app.route('/last_block', methods=['GET'])
-def get_last_block():
+def last_block():
     response = {
         'last_block': blockchain.last_block
     }
