@@ -2,6 +2,7 @@ import hashlib
 import json
 import requests
 import sys
+from blockchain import user
 from time import process_time
 
 

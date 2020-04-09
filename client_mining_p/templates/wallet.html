@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+    <h1>Welcome to your wallet {{user.name}}!</h1>
+    <p>
+        Current balance: {{user.balance}} coins
+    </p>
+    <p>
+        Your transactions: {{user.transactions}}
+    </p>
+    <p>
+        <form action="/wallet" method='POST'>
+            <label for='new_name'>Change your Username:</label><br>
+            <input type='text' id='new_name' name='name'>
+            <input type='submit' value='Submit'>
+        </form>
+    </p>
+    <p>
+        View all <a href='transactions'>Transactions</a>
+    </p>
+    <p>
+        View <a href='chain'>Chain</a>
+    </p>
+    <p>
+        View <a href='last_block'>Last Block</a>
+    </p>
+    <p>
+        Back to <a href='/'>Homepage</a>
+    </p>
+</html>

@@ -2,8 +2,7 @@ import hashlib
 import json
 from time import localtime, strftime
 from uuid import uuid4
-
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, render_template
 
 
 class Blockchain(object):
@@ -68,8 +67,10 @@ class Blockchain(object):
             'amount': amount,
             'timestamp': strftime("%Y-%m-%d %H:%M:%S", localtime())
         }
+        for_wallet = f'Sender: {sender}, Recipient: {recipient}, Amount: {amount} coins'
         self.current_transactions.append(transaction)
         self.all_transactions.append(transaction)
+        user.transactions.append(for_wallet)
         return self.last_block['index'] + 1
 
     def hash(self, block):
@@ -145,6 +146,22 @@ class Blockchain(object):
         guess_hash = hashlib.sha256(guess).hexdigest()
         return guess_hash[:6] == "000000"
 
+# Create a class for the users
+class Users:
+    def __init__(self, name):
+        self.name = name
+        self.transactions = []
+        self.balance = 0
+    ## Handled on the html pages
+    # def check_balance(self):
+    #     return f'Your current balance is: {self.balance} coins'
+    
+    # def change_name(self, new):
+    #     self.name = new
+    #     return f'Name changed to {self.name}'
+    
+    # def view_transactions(self):
+    #     return f'Your transactions: {self.transactions}'
 
 # Instantiate our Node
 app = Flask(__name__)
@@ -155,6 +172,11 @@ node_identifier = str(uuid4()).replace('-', '')
 # Instantiate the Blockchain
 blockchain = Blockchain()
 
+# Create user
+f = open("my_id.txt", "r")
+name = f.read()
+f.close()
+user = Users(name)
 # Change route to instead recieve a new potential proof sent by a client
 # @app.route('/mine', methods=['GET'])
 # def mine():
@@ -195,6 +217,8 @@ def mine():
             blockchain.new_transaction(sender='Skynet', recipient=data['id'], amount=1)
             previous_hash = blockchain.hash(blockchain.last_block)
             block = blockchain.new_block(data['proof'], previous_hash)
+            # Add 1 coin to user
+            user.balance += 1
             response = {
                 'message': 'New Block Created!',
                 'index': block['index'],
@@ -219,7 +243,7 @@ def mine():
 
 @app.route('/')
 def welcomer():
-    return '<h1>Welcome to the Blockchain landing page</h1>'
+    return render_template('welcome.html')
 
 @app.route('/chain', methods=['GET'])
 def full_chain():
@@ -260,6 +284,15 @@ def new_transaction():
             'transactions' : blockchain.transactions
         }
         return jsonify(response), 200
+
+# Route to wallet
+@app.route('/wallet', methods=['GET', 'POST'])
+def wallet():
+    if request.method == 'GET':
+        return render_template('wallet.html', title='Wallet', user=user)
+    if request.method == 'POST':
+        user.name = request.form['name']        
+        return render_template('wallet.html', title='Wallet', user=user)
 
 # Run the program on port 5000
 if __name__ == '__main__':
