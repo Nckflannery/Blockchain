@@ -143,7 +143,7 @@ class Blockchain(object):
         """
         guess = f"{block_string}{proof}".encode()
         guess_hash = hashlib.sha256(guess).hexdigest()
-        return guess_hash[:4] == "0000"
+        return guess_hash[:6] == "000000"
 
 
 # Instantiate our Node
@@ -192,7 +192,7 @@ def mine():
         # Check it is a valid proof, add to block chain
         if blockchain.valid_proof(last_block_string, data['proof']):
             # Add transaction
-            blockchain.new_transaction(sender='0', recipient=data['id'], amount=1)
+            blockchain.new_transaction(sender='Skynet', recipient=data['id'], amount=1)
             previous_hash = blockchain.hash(blockchain.last_block)
             block = blockchain.new_block(data['proof'], previous_hash)
             response = {
